@@ -18,10 +18,23 @@ const HttpKit = {
       const response = await axios.get(`${BASE_URL}/search.php`, {
         params: { s: query },
       });
+
+      console.log("query", response.data.meals)
       return response.data.meals || [];
     } catch (error) {
       console.error("Error fetching recipes by name:", error);
       throw error;
+    }
+  },
+
+  getAreas: async () => {
+    try{
+      const response = await axios.get(`${BASE_URL}/list.php?a=list`);
+      console.log(response,'33')
+      return response.data.meals || [];
+    }catch(err){
+      console.log(err);
+      throw err;
     }
   },
 

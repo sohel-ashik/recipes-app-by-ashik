@@ -2,31 +2,28 @@
 import HttpKit from "@/common/helpers/HttpKit";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import RecipeCard from "./RecipeCard";
 import Modal from "../Modal";
 import SingleRecipe from "./SingleRecipe";
-import HomePageTopReciepeSkeleton from "../Skeleton/HomePageTopReciepeSkeleton";
+import RecipeListOnly from "./RecipesListOnly";
 
 const RecipesList = () => {
   const [openDetails, setOpenDetails] = useState(false);
   const [recipeId, setRecipeId] = useState("");
-  const [recipes, setRecipes] = useState([]);
-  const [searchInput, setSearchInput] = useState("abc");
-  const [searchQuery, setSearchQuery] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  // const [searchQuery, setSearchQuery] = useState(null);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["recipes"],
-    queryFn: HttpKit.getTopRecipes,
+  const [searchedData, setSearchedData] = useState(null);
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["search_recipes"],
+    queryFn: ()=>HttpKit.searchRecipesByName(searchInput),
+    enabled: false
   });
 
-  useEffect(() => {
-    if (data) {
-      setRecipes(data);
-    }
-  }, [data]);
-
   const handleSearch = () => {
-    setSearchQuery(searchInput);
+    if(searchInput){
+      refetch();
+    }
   };
 
   const handleDetailsOpen = (id) => {
@@ -34,31 +31,40 @@ const RecipesList = () => {
     setRecipeId(id);
   };
 
-  if (isLoading) return (
-    <div className="mt-10">
-       <HomePageTopReciepeSkeleton/>
-    </div>
-  );
-  if (error) return <div>Error loading recipes: {error.message}</div>;
+  useEffect(()=>{
+    if(!searchInput){
+      setSearchedData(null);
+    } 
+  },[searchInput])
+
+  useEffect(()=>{
+    if(data){
+      setSearchedData([...data])
+    }
+  },[data])
+  
 
   return (
     <div className="bg-gray-50 py-10">
       <div className="container mx-auto">
-        <h1 className="text-2xl lg:px-4 px-10 font-bold">Top Recipes</h1>
+        <div className="px-4 md:px-16">
+        <h1 className="text-2xl pl-6 font-bold">Top Recipes</h1>
         {/* Search form */}
         <div>
-          <form action="" className="w-full lg:px-0 px-10 mt-6">
+          <form onSubmit={(e)=>e.preventDefault()} className="w-full  mt-6">
             <div className="relative flex p-1 rounded-full bg-white   border border-yellow-200 shadow-md md:p-2">
               <input
-                placeholder="Your favorite food"
+                placeholder="Your favorite food with name"
                 className="w-full p-4 rounded-full outline-none bg-transparent "
                 type="text"
                 onChange={(e) =>
-                  setSearchInput((prev) => ({
-                    ...prev,
-                    value: e.target.value,
-                  }))
+                  setSearchInput(e.target.value)
                 }
+                onKeyDown={(e)=>{
+                  if(e.key === 'Enter'){
+                    handleSearch();
+                  }
+                }}
               />
               <button
                 onClick={() => handleSearch()}
@@ -81,19 +87,9 @@ const RecipesList = () => {
             </div>
           </form>
         </div>
-        <div className="relative py-16">
-          <div className="container relative m-auto px-6 text-gray-500 md:px-12">
-            <div className="grid gap-6 md:mx-auto md:w-8/12 lg:w-full lg:grid-cols-3">
-              {recipes?.map((recipe) => (
-                <RecipeCard
-                  key={recipe?.id}
-                  recipe={recipe}
-                  handleDetailsOpen={handleDetailsOpen}
-                />
-              ))}
-            </div>
-          </div>
         </div>
+
+        <RecipeListOnly searchedData={searchedData} searchLoading={isLoading} handleDetailsOpen={handleDetailsOpen}/>
       </div>
 
       {/* Modal*/}

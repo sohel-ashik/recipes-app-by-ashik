@@ -1,16 +1,47 @@
 'use client';
 
 import Link from "next/link";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const router = useRouter();
+
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    
+    console.log(response,'0')
+    const data = await response.json();
+    if (response.ok) {
+      alert('Login successful');
+      // Store token in local storage for further authentication
+      console.log(data.token);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userName', data?.user?.name);
+      localStorage.setItem('userEmail', data?.user?.email);
+      router.push('/');
+    } else {
+      alert(data.message);
+    }
+
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-yellow-50 p-4">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg shadow-yellow-100">
         <h2 className="text-2xl font-bold text-yellow-900 text-center mb-6">
           Welcome Back to Tailus <span className="text-yellow-700">Feedus</span>
         </h2>
-        <form className="space-y-4">
+        <form onSubmit={submitHandler} className="space-y-4">
           <div>
             {/* <label htmlFor="email" className="block text-sm text-yellow-900 font-semibold">
               Email
@@ -21,6 +52,8 @@ const Login = () => {
               className="w-full px-4 py-2 mt-1 border border-yellow-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               placeholder="Enter your email"
               required
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
             />
           </div>
           <div>
@@ -33,6 +66,8 @@ const Login = () => {
               className="w-full px-4 py-2 mt-1 border border-yellow-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               placeholder="Enter your password"
               required
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
             />
           </div>
           <button

@@ -1,12 +1,14 @@
 'use client'
 
+import loginChecker from "@/common/helpers/loginChecker";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const Navbar = () => {
   const navCheckboxRef = useRef(null);
   const pathName = usePathname();
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const handleModalDisapear  = () => {
     setTimeout(() => {
@@ -15,6 +17,19 @@ const Navbar = () => {
       }
     }, 200); 
   };
+
+  const handleLogOut = () => {
+    handleModalDisapear();
+    setLoggedIn(false);
+    localStorage.setItem('token', "");
+    localStorage.setItem('userName', "");
+    localStorage.setItem('userEmail', "");
+  }
+
+  useEffect(()=>{
+    const isLoggedIn =  loginChecker();
+    setLoggedIn(isLoggedIn);
+  },[pathName])
 
 
   return (
@@ -90,7 +105,8 @@ const Navbar = () => {
             </div>
 
             <div className="w-full min-w-max space-y-2 border-yellow-200 lg:space-y-0 sm:w-max lg:border-l ">
-            <Link href='/signup'  onClick={handleModalDisapear}>
+            {!loggedIn ? <>
+              <Link href='/signup'  onClick={handleModalDisapear}>
                 <button
                   type="button"
                   title="Start buying"
@@ -112,7 +128,24 @@ const Navbar = () => {
                       Login
                   </span>
                 </button>
-              </Link>
+              </Link></> : 
+                <div>
+                    <div className="flex items-center gap-2">
+                      <div>{localStorage.getItem('userName')}</div>
+                      <Link href="" onClick={handleLogOut}>
+                          <button
+                            type="button"
+                            title="Start buying"
+                            className={`w-full py-3 px-6 text-center rounded-full transition ${pathName.includes('login') ? 'bg-yellow-300' : ''} hover:bg-yellow-100 active:bg-yellow-400 focus:bg-yellow-300 sm:w-max border border-yellow-300 mt-2 lg:mt-0 lg:ml-2`}
+                          >
+                            <span className="block text-yellow-900 font-semibold text-sm">
+                                Logout
+                            </span>
+                          </button>
+                      </Link>
+                    </div>
+                </div>
+              }
             </div>
           </div>
         </div>

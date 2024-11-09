@@ -1,14 +1,49 @@
 'use client';
 
 import Link from "next/link";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 const Signup = () => {
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    console.log('here')
-  }
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  
+  const router = useRouter();
+
+  
+  const submitHandler = async (e) => {
+      e.preventDefault();
+  
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name, phone, password }),
+        });
+  
+        const data = await response.json();
+        if (response.ok) {
+          // setMessage(data.message);
+          // Clear the form fields if registration is successful
+          setEmail('');
+          setName('');
+          setPhone('');
+          setPassword('');
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userName', data?.user?.name);
+          localStorage.setItem('userEmail', data?.user?.email);
+          router.push('/');
+        } else {
+          alert("error to signup")
+        }
+      } catch (error) {
+        alert("error to signup")
+        console.error('Error during registration:', error);
+      }
+    };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-yellow-50 p-4">
@@ -27,6 +62,8 @@ const Signup = () => {
               className="w-full px-4 py-2 mt-1 border border-yellow-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               placeholder="Enter your name"
               required
+              value={name}
+              onChange={(e)=>setName(e.target.value)}
             />
           </div>
           <div>
@@ -39,6 +76,8 @@ const Signup = () => {
               className="w-full px-4 py-2 mt-1 border border-yellow-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               placeholder="Enter your email"
               required
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
             />
           </div>
           <div>
@@ -51,6 +90,8 @@ const Signup = () => {
               className="w-full px-4 py-2 mt-1 border border-yellow-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               placeholder="Enter your phone number"
               required
+              value={phone}
+              onChange={(e)=>setPhone(e.target.value)}
             />
           </div>
           <div>
@@ -63,6 +104,8 @@ const Signup = () => {
               className="w-full px-4 py-2 mt-1 border border-yellow-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               placeholder="Create a password"
               required
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
             />
           </div>
           <button

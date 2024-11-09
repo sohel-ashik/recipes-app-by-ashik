@@ -18,7 +18,7 @@ const RecipeCard = ({ recipe, handleDetailsOpen }) => {
       <h3 className="text-2xl font-semibold text-gray-800">
         {recipe?.strMeal}
       </h3>
-      <p>
+      <p onClick={()=>console.log(recipe)}>
         Obcaecati, quam? Eligendi, nulla numquam natus laborum porro at cum,
         consectetur ullam tempora ipsa iste officia sed officiis! Incidunt ea
         animi officiis.

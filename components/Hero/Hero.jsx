@@ -5,7 +5,7 @@ const Hero = () => {
   return (
     <div>
       {/* BANNER */}
-      <div className="relative bg-yellow-50 z-10">
+      <div className="relative bg-yellow-50 z-10 md:pb-0 pb-10">
         <div className="container m-auto px-6 pt-32 md:px-12 lg:pt-[4.8rem] lg:px-7">
           <div className="flex items-center flex-wrap px-2 md:px-0">
             <div className="relative lg:w-6/12 lg:py-24 xl:py-32">
