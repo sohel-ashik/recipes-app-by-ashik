@@ -1,14 +1,16 @@
-import fs from 'fs';
-import path from 'path';
+// import fs from 'fs';
+// import path from 'path';
+
+import { users} from '@/server/data/users';
 
 export async function POST(req) {
   try {
     const { email, password } = await req.json();
 
     // Load existing users
-    const filePath = path.join(process.cwd(), 'server/data', 'users.json');
-    const fileData = fs.readFileSync(filePath, 'utf-8');
-    const users = JSON.parse(fileData);
+    // const filePath = path.join(process.cwd(), 'server/data', 'users.json');
+    // const fileData = fs.readFileSync(filePath, 'utf-8');
+    // const users = JSON.parse(fileData);
 
     // Find the user
     const user = users.find(

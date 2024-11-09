@@ -1,13 +1,15 @@
-import fs from 'fs';
-import path from 'path';
+// import fs from 'fs';
+// import path from 'path';
 
-const filePath = path.join(process.cwd(), 'server/data', 'users.json');
+import { users } from '@/server/data/users';
 
-// Utility function to load users data
-const loadCartData = () => {
-  const fileData = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(fileData);
-};
+// const filePath = path.join(process.cwd(), 'server/data', 'users.json');
+
+// // Utility function to load users data
+// const loadCartData = () => {
+//   const fileData = fs.readFileSync(filePath, 'utf-8');
+//   return JSON.parse(fileData);
+// };
 
 
 export async function GET(req, res) {
@@ -17,7 +19,7 @@ export async function GET(req, res) {
       const id = searchParams.get('id');
       const userEmail = searchParams.get('userEmail');
       
-      const users = loadCartData();
+      // const users = loadCartData();
   
       // Get cartList from the users data
       const user = users.find(user=>user.email === userEmail);

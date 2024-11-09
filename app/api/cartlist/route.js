@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
+import { users } from '@/server/data/users';
+
 const filePath = path.join(process.cwd(), 'server/data', 'users.json');
 
 // Utility function to load users data
@@ -20,7 +22,7 @@ export async function GET(req, res) {
     const { searchParams } = new URL(req.url);
     const userEmail = searchParams.get('userEmail');
     
-    const users = loadCartData();
+    // const users = loadCartData();
 
     // Get cartList from the users data
     const user = users.find(user=>user.email === userEmail);
@@ -44,7 +46,6 @@ export async function GET(req, res) {
 export async function POST(req) {
     try {
       const { id, userEmail, data } = await req.json();
-      console.log(data);
   
       if (!id) {
         return new Response(JSON.stringify({ message: 'Item and ID are required' }), {
@@ -53,7 +54,7 @@ export async function POST(req) {
       }
   
       // Load existing users data
-      const users = loadCartData();
+    //   const users = loadCartData();
   
       // Find the user and update their cartList
       users.forEach(user => {
@@ -65,7 +66,7 @@ export async function POST(req) {
       });
   
       // Save the updated data back to the JSON file
-      saveCartData(users);
+    //   saveCartData(users);
   
       return new Response(JSON.stringify({ message: 'Item added' }), {
         status: 201,
@@ -92,7 +93,7 @@ export async function DELETE(req, res) {
     // Load existing users data
 
     // Check if cartList exists and the item is in the cart
-    const users = loadCartData();
+    // const users = loadCartData();
   
       // Find the user and update their cartList
     users.forEach(user => {
