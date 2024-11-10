@@ -36,10 +36,15 @@ User can search recipes in home page by ingredient or name.
 5. **Page Loading**: Resolved loading issue on the page while the data is fetching.
 6. **Search Functionality**: Search bar were not working, fixed it.
 
-
+## Technical Aspects
+- used Next.js built in server for make api end point
+- used mongodb for the realtime data persistency.
+- used bcrypt for data hashing
+- notyf for notification
 
 ### Time Estimate
 - Total time spent on the assessment: **20 HOURS**
 
+## Deployment
 
-
+- **Live Link**: [https://recipes-app-by-ashik.vercel.app/](https://recipes-app-by-ashik.vercel.app/)
