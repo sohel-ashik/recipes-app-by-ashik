@@ -1,38 +1,96 @@
-'use client';
+'use client'
 
+import loginChecker from "@/common/helpers/loginChecker";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+// import { Notyf } from 'notyf'; 
+import { useNav } from "@/providers/NavContext";
+
 
 const Login = () => {
+  const {setReloader} = useNav();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  
 
   const router = useRouter();
 
+  useEffect(() => {
+    
+
+    async function isLoggedIn() {
+      const isLoggedIn = await loginChecker();
+      if (isLoggedIn) router.push('/');
+    }
+
+    isLoggedIn();
+
+  }, [router]);
+
+  const uploadAllLocalCartToServer = () => {
+    // let notyf =  new Notyf({
+    //   duration: 3000,  
+    //   position: { x: 'right', y: 'top' }, 
+    //   ripple: true, 
+    // });
+
+    const userEmail = localStorage.getItem('userEmail');
+    const offLineCart = localStorage.getItem('cart');
+    const offLineCartObj = JSON.parse(offLineCart);
+
+    const keysOfTheCartList = Object.keys(offLineCartObj ?? {});
+    keysOfTheCartList && keysOfTheCartList.forEach(async (item) => {
+      const data = offLineCartObj[item];
+      const res = await fetch(`/api/cartlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userEmail, id: item, data })
+      });
+    })
+
+    localStorage.removeItem('cart');
+    // notyf.success('All local data uploaded to server'); // Success notification
+  }
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    
-    console.log(response,'0')
-    const data = await response.json();
-    if (response.ok) {
-      alert('Login successful');
-      // Store token in local storage for further authentication
-      console.log(data.token);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userName', data?.user?.name);
-      localStorage.setItem('userEmail', data?.user?.email);
-      router.push('/');
-    } else {
-      alert(data.message);
+    try{
+      setLoading(true);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        // notyf.success('Login successful'); // Success notification
+        // Store token in local storage for further authentication
+        console.log(data.token);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userName', data?.user?.name);
+        localStorage.setItem('userEmail', data?.user?.email);
+        uploadAllLocalCartToServer();
+        
+        router.push('/');
+        
+      } else {
+        // notyf.error(data.message); // Error notification
+        alert('Mail or password is wrong !')
+      }
+      setLoading(false);
+
+    } catch(err){
+      console.log(err);
+      alert('something is wrong');
+      setLoading(false);
     }
 
+    setTimeout(()=>{
+      setReloader();
+    },500)
   }
 
   return (
@@ -43,9 +101,6 @@ const Login = () => {
         </h2>
         <form onSubmit={submitHandler} className="space-y-4">
           <div>
-            {/* <label htmlFor="email" className="block text-sm text-yellow-900 font-semibold">
-              Email
-            </label> */}
             <input
               type="email"
               id="email"
@@ -53,13 +108,10 @@ const Login = () => {
               placeholder="Enter your email"
               required
               value={email}
-              onChange={(e)=>setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div>
-            {/* <label htmlFor="password" className="block text-sm text-yellow-900 font-semibold">
-              Password
-            </label> */}
             <input
               type="password"
               id="password"
@@ -67,14 +119,15 @@ const Login = () => {
               placeholder="Enter your password"
               required
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <button
+            disabled={loading}
             type="submit"
             className="w-full py-3 mt-4 text-center rounded-full bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-semibold transition duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           >
-            Log in
+            {loading ? 'Logging in...' : 'Log in'}
           </button>
         </form>
         <div className="mt-6 text-center">

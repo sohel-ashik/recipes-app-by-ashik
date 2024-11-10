@@ -1,49 +1,93 @@
-'use client';
+'use client'
 
+import loginChecker from "@/common/helpers/loginChecker";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+// import { Notyf } from 'notyf';
+import 'notyf/notyf.min.css'; // Import the Notyf CSS for styling
+import { useNav } from "@/providers/NavContext";
 
 const Signup = () => {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  
+  const [loading, setLoading] = useState(false);
+
+  const {setReloader} = useNav();
+
   const router = useRouter();
 
-  
+  // Create a Notyf instance
+  // let notyf; 
+
+  useEffect(() => {
+    // notyf =  new Notyf();
+    async function isLoggedIn() {
+      const isLoggedIn = await loginChecker();
+      if (isLoggedIn) router.push('/');
+    }
+
+    isLoggedIn();
+  }, [router]);
+
+  const uploadAllLocalCartToServer = () => {
+    const userEmail = localStorage.getItem('userEmail');
+    const offLineCart = localStorage.getItem('cart');
+    const offLineCartObj = JSON.parse(offLineCart);
+
+    const keysOfTheCartList = Object.keys(offLineCartObj ?? {});
+    keysOfTheCartList.forEach(async (item) => {
+      const data = offLineCartObj[item];
+      await fetch(`/api/cartlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userEmail, id: item, data }),
+      });
+    });
+
+    localStorage.removeItem('cart');
+    // notyf.success('All local data uploaded to server');
+  };
+
   const submitHandler = async (e) => {
-      e.preventDefault();
-  
-      try {
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, name, phone, password }),
-        });
-  
-        const data = await response.json();
-        if (response.ok) {
-          // setMessage(data.message);
-          // Clear the form fields if registration is successful
-          setEmail('');
-          setName('');
-          setPhone('');
-          setPassword('');
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userName', data?.user?.name);
-          localStorage.setItem('userEmail', data?.user?.email);
-          router.push('/');
-        } else {
-          alert("error to signup")
-        }
-      } catch (error) {
-        alert("error to signup")
-        console.error('Error during registration:', error);
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, phone, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setEmail('');
+        setName('');
+        setPhone('');
+        setPassword('');
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userName', data?.user?.name);
+        localStorage.setItem('userEmail', data?.user?.email);
+        uploadAllLocalCartToServer();
+        // notyf.success('Registration successful!');
+        
+        router.push('/');
+      } else {
+        console.log(response)
+        // notyf.error('Error during signup!');
+        alert('User exists')
       }
-    };
+      setLoading(false);
+    } catch (error) {
+      // notyf.error('Error during signup!');
+      setLoading(false);
+      alert('Something is wrong')
+    }
+    setReloader();
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-yellow-50 p-4">
@@ -51,11 +95,8 @@ const Signup = () => {
         <h2 className="text-2xl font-bold text-yellow-900 text-center mb-6">
           Create an Account on Tailus <span className="text-yellow-700">Feedus</span>
         </h2>
-        <form onSubmit={(e)=>submitHandler(e)} className="space-y-4">
+        <form onSubmit={(e) => submitHandler(e)} className="space-y-4">
           <div>
-            {/* <label htmlFor="name" className="block text-sm text-yellow-900 font-semibold">
-              Name
-            </label> */}
             <input
               type="text"
               id="name"
@@ -63,13 +104,10 @@ const Signup = () => {
               placeholder="Enter your name"
               required
               value={name}
-              onChange={(e)=>setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
-            {/* <label htmlFor="email" className="block text-sm text-yellow-900 font-semibold">
-              Email
-            </label> */}
             <input
               type="email"
               id="email"
@@ -77,13 +115,10 @@ const Signup = () => {
               placeholder="Enter your email"
               required
               value={email}
-              onChange={(e)=>setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div>
-            {/* <label htmlFor="phone" className="block text-sm text-yellow-900 font-semibold">
-              Phone
-            </label> */}
             <input
               type="tel"
               id="phone"
@@ -91,13 +126,10 @@ const Signup = () => {
               placeholder="Enter your phone number"
               required
               value={phone}
-              onChange={(e)=>setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
           <div>
-            {/* <label htmlFor="password" className="block text-sm text-yellow-900 font-semibold">
-              Password
-            </label> */}
             <input
               type="password"
               id="password"
@@ -105,14 +137,14 @@ const Signup = () => {
               placeholder="Create a password"
               required
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <button
             type="submit"
             className="w-full py-3 mt-4 text-center rounded-full bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-semibold transition duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           >
-            Sign Up
+            {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
         <div className="mt-6 text-center">

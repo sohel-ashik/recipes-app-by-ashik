@@ -1,44 +1,32 @@
-// import fs from 'fs';
-// import path from 'path';
+import clientPromise from '@/app/lib/mongodb';
 
-import { users } from '@/server/data/users';
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const userEmail = searchParams.get('userEmail');
 
-// const filePath = path.join(process.cwd(), 'server/data', 'users.json');
+    const client = await clientPromise;
+    const db = client.db("mealapp");
+    const usersCollection = db.collection("users");
 
-// // Utility function to load users data
-// const loadCartData = () => {
-//   const fileData = fs.readFileSync(filePath, 'utf-8');
-//   return JSON.parse(fileData);
-// };
+    const user = await usersCollection.findOne(
+      { email: userEmail, [`cartList.${id}`]: { $exists: true } }
+    );
 
-
-export async function GET(req, res) {
-    try {
-      // Load cart data from users.
-      const { searchParams } = new URL(req.url);
-      const id = searchParams.get('id');
-      const userEmail = searchParams.get('userEmail');
-      
-      // const users = loadCartData();
-  
-      // Get cartList from the users data
-      const user = users.find(user=>user.email === userEmail);
-      if(user && user.cartList[id]){
-          return new Response(JSON.stringify({ found : true }), {
-            status: 200,
-          });
-      }else{
-        return new Response(JSON.stringify({found: false}), {
-            status: 200,
-          });
-      }
-      // Return the cartList
-      
-    } catch (error) {
-      console.error('Error getting cart :', error);
-      return new Response(JSON.stringify({found: false}), {
-          status: 500,
-        });
-      //   res.status(500).json({ message: 'Server error' });
+    if (user) {
+      return new Response(JSON.stringify({ found: true }), {
+        status: 200,
+      });
+    } else {
+      return new Response(JSON.stringify({ found: false }), {
+        status: 200,
+      });
     }
+  } catch (error) {
+    console.error('Error getting cart:', error);
+    return new Response(JSON.stringify({ found: false }), {
+      status: 500,
+    });
   }
+}

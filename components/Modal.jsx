@@ -24,7 +24,6 @@ const Modal = ({ isOpen, setIsOpen, children }) => {
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
-          {console.log(children)}
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex items-center justify-center min-h-full  text-center sm:items-center sm:p-0"

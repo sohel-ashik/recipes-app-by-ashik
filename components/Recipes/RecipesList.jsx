@@ -20,9 +20,21 @@ const RecipesList = () => {
     enabled: false
   });
 
+  const {
+    data: recipesData,
+    isLoading: recipesLoading,
+    error: recipesError,
+    refetch: fetchRecipesByIngredient
+  } = useQuery({
+    queryKey: ["search_recipes_by_ingredient"],
+    queryFn: () => HttpKit.searchRecipesByIngredient(searchInput),
+    enabled: false,
+  });
+
   const handleSearch = () => {
     if(searchInput){
       refetch();
+      fetchRecipesByIngredient();
     }
   };
 
@@ -37,24 +49,28 @@ const RecipesList = () => {
     } 
   },[searchInput])
 
-  useEffect(()=>{
-    if(data){
-      setSearchedData([...data])
+  useEffect(() => {
+    if (data && recipesData) {
+      setSearchedData([...data, ...recipesData]);
+    } else if (data) {
+      setSearchedData([...data]);
+    } else if (recipesData) {
+      setSearchedData([...recipesData]);
     }
-  },[data])
+  }, [data, recipesData]);
   
 
   return (
     <div className="bg-gray-50 py-10">
       <div className="container mx-auto">
-        <div className="px-4 md:px-16">
+        <div className="px-4 md:px-16">{console.log(recipesData)}
         <h1 className="text-2xl pl-6 font-bold">Top Recipes</h1>
         {/* Search form */}
         <div>
           <form onSubmit={(e)=>e.preventDefault()} className="w-full  mt-6">
             <div className="relative flex p-1 rounded-full bg-white   border border-yellow-200 shadow-md md:p-2">
               <input
-                placeholder="Your favorite food with name"
+                placeholder="Search your dishes with name or ingredient"
                 className="w-full p-4 rounded-full outline-none bg-transparent "
                 type="text"
                 onChange={(e) =>
@@ -89,7 +105,7 @@ const RecipesList = () => {
         </div>
         </div>
 
-        <RecipeListOnly searchedData={searchedData} searchLoading={isLoading} handleDetailsOpen={handleDetailsOpen}/>
+        <RecipeListOnly searchedData={searchedData} searchLoading={isLoading && recipesLoading} handleDetailsOpen={handleDetailsOpen}/>
       </div>
 
       {/* Modal*/}

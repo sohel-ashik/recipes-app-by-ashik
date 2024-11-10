@@ -1,8 +1,10 @@
+
 import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 // import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TanstackProvider from "@/providers/TanstackProvider";
+import { NavProvider } from "@/providers/NavContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,10 +30,13 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TanstackProvider>
+            <NavProvider>
           <div className="z-30 fixed left-0 right-0 ">
-            <Navbar />
+
+              <Navbar />
           </div>
           {children}
+            </NavProvider>
         </TanstackProvider>
       </body>
     </html>

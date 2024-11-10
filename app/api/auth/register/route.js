@@ -1,37 +1,38 @@
-import fs from 'fs';
-import path from 'path';
-
-import { users } from '@/server/data/users';
+import clientPromise from '@/app/lib/mongodb';
+import bcrypt from 'bcrypt';
 
 export const POST = async (req, res) => {
   try {
-    const { email, name, phone, password } = await req.json(); // Await and parse the JSON from the request body
+    const { email, name, phone, password } = await req.json();
+    const client = await clientPromise;
+    const db = client.db("mealapp");
+    const usersCollection = db.collection("users");
 
-    // Load existing users
-    // const filePath = path.join(process.cwd(), 'server/data', 'users.json');
-    // const fileData = fs.readFileSync(filePath, 'utf-8');
-    // const users = JSON.parse(fileData);
-
-    // Check if user already exists
-    const existingUser = users.find(user => user.email === email);
+    // Check if the user already exists
+    const existingUser = await usersCollection.findOne({ email });
     if (existingUser) {
       return new Response(JSON.stringify({ message: 'User already exists' }), {
         status: 409,
       });
     }
 
+    // Hash the password using bcrypt
+    const saltRounds = 10; // Defines the number of salt rounds
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Initialize a cart list (if needed)
     const cartList = {};
-    // Add new user
-    const newUser = { email, name, phone, password, cartList };
-    users.push(newUser);
 
-    
-    // Write updated data back to JSON file
-    // fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
-    
-    const token = Buffer.from(`${email}:${password}`).toString('base64');
+    const newUser = { email, name, phone, password: hashedPassword, cartList };
 
-    return new Response(JSON.stringify({ message: 'User registered successfully',token, user: newUser }), {
+    // Insert the new user into the database
+    const result = await usersCollection.insertOne(newUser);
+    console.log('User registered:', result);
+
+    // Create a simple token (this should be done in a secure way, e.g., JWT, for production)
+    const token = Buffer.from(`${email}:${hashedPassword}`).toString('base64');
+
+    return new Response(JSON.stringify({ message: 'User registered successfully', token, user: newUser }), {
       status: 201,
     });
   } catch (error) {

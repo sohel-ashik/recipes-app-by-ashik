@@ -4,11 +4,16 @@ import loginChecker from "@/common/helpers/loginChecker";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useNav } from "@/providers/NavContext";
 
 const Navbar = () => {
+  const {cartCount, valueChanger, setReloader} = useNav();
+
   const navCheckboxRef = useRef(null);
   const pathName = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
+  const router = useRouter();
 
   const handleModalDisapear  = () => {
     setTimeout(() => {
@@ -24,6 +29,8 @@ const Navbar = () => {
     localStorage.setItem('token', "");
     localStorage.setItem('userName', "");
     localStorage.setItem('userEmail', "");
+    router.push('/')
+    window.location.reload();
   }
 
   useEffect(()=>{
@@ -33,7 +40,7 @@ const Navbar = () => {
 
 
   return (
-    <nav className="fixed z-30 w-full bg-yellow-50 md:absolute shadow-lg  shadow-orange-100">
+    <nav className="fixed z-30 w-full bg-yellow-50 md:absolute border-b-2 border-blue-30">
       <div className="container m-auto px-2 md:px-12 lg:px-7">
         <div className="flex flex-wrap items-center justify-between py-3 gap-6 md:py-4 md:gap-0">
           <input
@@ -86,7 +93,7 @@ const Navbar = () => {
                 <li>
                   <Link
                     href="/all-recipes"
-                    className="block md:px-4 transition hover:text-yellow-700"
+                    className={`block md:px-4 transition ${pathName.includes('all-recipes') ? 'text-yellow-600' : ''} hover:text-yellow-700`}
                     onClick={handleModalDisapear}
                   >
                     <span>All recipes</span>
@@ -95,10 +102,11 @@ const Navbar = () => {
                 <li>
                   <Link
                     href="/cart"
-                    className="block md:px-4 transition hover:text-yellow-700"
+                    className={`block md:px-4 transition hover:text-yellow-700 ${pathName.includes('cart') ? 'text-yellow-600' : ""}`}
                     onClick={handleModalDisapear}
                   >
                     <span>Cart</span>
+                    {cartCount ? <span className="ml-1 bg-green-700 text-white px-2 py-1 rounded-full">{cartCount}</span> : null}
                   </Link>
                 </li>
               </ul>
@@ -130,10 +138,11 @@ const Navbar = () => {
                 </button>
               </Link></> : 
                 <div>
-                    <div className="flex items-center gap-2">
-                      <div>{localStorage.getItem('userName')}</div>
-                      <Link href="" onClick={handleLogOut}>
+                    <div className="flex flex-col md:flex-row items-center gap-2">
+                      <div className="pl-3">{localStorage.getItem('userName')}</div>
+                      
                           <button
+                          onClick={handleLogOut}
                             type="button"
                             title="Start buying"
                             className={`w-full py-3 px-6 text-center rounded-full transition ${pathName.includes('login') ? 'bg-yellow-300' : ''} hover:bg-yellow-100 active:bg-yellow-400 focus:bg-yellow-300 sm:w-max border border-yellow-300 mt-2 lg:mt-0 lg:ml-2`}
@@ -142,7 +151,7 @@ const Navbar = () => {
                                 Logout
                             </span>
                           </button>
-                      </Link>
+                      
                     </div>
                 </div>
               }

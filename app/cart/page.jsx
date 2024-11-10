@@ -46,7 +46,16 @@ const Cart = () => {
         }
     }
     
-    getCartList();
+    const userEmail = localStorage.getItem('userEmail');
+    if(userEmail){
+      getCartList();
+    }else{
+      const offLineCart = localStorage.getItem('cart');
+      const offLineCartObj = JSON.parse(offLineCart)
+      if(offLineCartObj){
+        setCartList(Object.values(offLineCartObj))
+      }
+    }
 
   },[])
 

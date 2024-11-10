@@ -34,13 +34,13 @@ export default function RecipeListOnly({handleDetailsOpen, searchedData,searchLo
             <div className="grid gap-6 md:mx-auto md:w-8/12 lg:w-full lg:grid-cols-3">
               {searchedData ?  searchedData?.map((recipe) => (
                 <RecipeCard
-                  key={recipe?.id}
+                  key={recipe.id}
                   recipe={recipe}
                   handleDetailsOpen={handleDetailsOpen}
                 />
               )) : recipes?.map((recipe) => (
                 <RecipeCard
-                  key={recipe?.id}
+                  key={recipe.id}
                   recipe={recipe}
                   handleDetailsOpen={handleDetailsOpen}
                 />

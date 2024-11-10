@@ -1,12 +1,14 @@
 'use client';
 
 import HttpKit from "@/common/helpers/HttpKit";
+import { useNav } from "@/providers/NavContext";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const SingleRecipe = ({ id, setIsOpen, removeFromTheCartList}) => {
   const [isAdded, setIsAdded] = useState(false);
+  const {setReloader} = useNav();
 
   const [statusChanged, setStatusChanged] = useState(false);
 
@@ -18,29 +20,50 @@ const SingleRecipe = ({ id, setIsOpen, removeFromTheCartList}) => {
   const handleAddToCart = async (data,id)=>{
     const userEmail = localStorage.getItem('userEmail');
     const {idMeal,strMeal, strMealThumb} = data;
-    const res = await fetch(`/api/cartlist`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({userEmail, id , data: {idMeal,strMeal, strMealThumb} })
-    });
-    setStatusChanged(pre=>!pre);
+
+    if(userEmail){
+      const res = await fetch(`/api/cartlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({userEmail, id , data: {idMeal,strMeal, strMealThumb} })
+      });
+      setStatusChanged(pre=>!pre);
+    } else {
+      const cart = JSON.parse(localStorage.getItem('cart')) || {};
+      cart[id] = { idMeal, strMeal, strMealThumb };
+      localStorage.setItem('cart', JSON.stringify(cart));
+      setStatusChanged(pre=>!pre);
+    }
+    setReloader();
   }
 
   const handleDeleteToCart = async (id)=>{
     const userEmail = localStorage.getItem('userEmail');
-    const res = await fetch(`/api/cartlist`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({userEmail, id })
-    });
-    setStatusChanged(pre=>!pre);
+    if(userEmail){
+      const res = await fetch(`/api/cartlist`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({userEmail, id })
+      });
+      setStatusChanged(pre=>!pre);
+    }else {
+      const cart = JSON.parse(localStorage.getItem('cart'));
+      if (cart) {
+        delete cart[id];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        setStatusChanged(pre=>!pre);
+      }
+    }
+
+    setReloader();
+
     removeFromTheCartList && removeFromTheCartList(id);
     removeFromTheCartList && setIsOpen(false);
   }
 
   useEffect(() => {
+    const userEmail = localStorage.getItem('userEmail');
     async function checklist(id) {
-      const userEmail = localStorage.getItem('userEmail');
           const res = await fetch(`/api/checkcart?userEmail=${userEmail}&id=${id}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -55,7 +78,15 @@ const SingleRecipe = ({ id, setIsOpen, removeFromTheCartList}) => {
           }
       }
 
-      checklist(id);
+      if(userEmail){
+        checklist(id);
+      }else{
+        const offLineCart = localStorage.getItem('cart');
+        const offLineCartObj = JSON.parse(offLineCart)
+        if(offLineCartObj){
+          setIsAdded(offLineCartObj[id] ? true : false);
+        }
+      }
       
 
   }, [data, statusChanged]);

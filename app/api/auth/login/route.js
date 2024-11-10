@@ -1,21 +1,15 @@
-// import fs from 'fs';
-// import path from 'path';
-
-import { users} from '@/server/data/users';
+import clientPromise from '@/app/lib/mongodb';
+import bcrypt from 'bcrypt';
 
 export async function POST(req) {
   try {
     const { email, password } = await req.json();
+    const client = await clientPromise;
+    const db = client.db("mealapp");
+    const usersCollection = db.collection("users");
 
-    // Load existing users
-    // const filePath = path.join(process.cwd(), 'server/data', 'users.json');
-    // const fileData = fs.readFileSync(filePath, 'utf-8');
-    // const users = JSON.parse(fileData);
-
-    // Find the user
-    const user = users.find(
-      user => user.email === email && user.password === password
-    );
+    // Check if user exists by email
+    const user = await usersCollection.findOne({ email });
 
     if (!user) {
       return new Response(JSON.stringify({ message: 'Invalid credentials' }), {
@@ -23,13 +17,23 @@ export async function POST(req) {
       });
     }
 
-    // Generate a simple token
+    // Compare the hashed password with the provided password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return new Response(JSON.stringify({ message: 'Invalid credentials' }), {
+        status: 401,
+      });
+    }
+
+    // Generate token (for example, using email and password, this should be more secure in production, e.g., JWT)
     const token = Buffer.from(`${email}:${password}`).toString('base64');
+
     return new Response(JSON.stringify({ message: 'Login successful', token, user }), {
       status: 200,
     });
   } catch (error) {
-    console.log(error)
+    console.error('Error during login:', error);
     return new Response(JSON.stringify({ message: 'Server error' }), {
       status: 500,
     });
